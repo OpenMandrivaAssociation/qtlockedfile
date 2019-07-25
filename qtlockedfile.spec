@@ -31,7 +31,6 @@ reading it.
 
 %package qt5
 Summary:	QFile extension with advisory locking functions (Qt5)
-Requires:	qt5-qtbase
 
 %description qt5
 This class extends the QFile class with inter-process file locking capabilities.
@@ -73,11 +72,9 @@ mkdir -p %{buildroot}%{_libdir}
 cp -ap lib/* %{buildroot}%{_libdir}
 
 # headers
-mkdir -p %{buildroot}%{_qt4_headerdir}/QtSolutions %{buildroot}%{_qt5_headerdir}
-cp -ap %{buildroot}%{_qt4_headerdir}/QtSolutions %{buildroot}%{_qt5_headerdir}
-
+mkdir -p %{buildroot}%{_qt5_headerdir}/QtSolutions
+cp -ap src/qtlockedfile.h src/QtLockedFile %{buildroot}%{_qt5_headerdir}/QtSolutions
 install -p -D -m644 %{SOURCE1} %{buildroot}%{_libdir}/qt5/mkspecs/features/qtlockedfile.prf
-
 
 %files
 %license licenses/*
