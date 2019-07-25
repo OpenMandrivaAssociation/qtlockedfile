@@ -1,91 +1,96 @@
-%define upstream_version 2.4_1
-%define version %(echo %{upstream_version} | sed 's,_,.,')
+%global commit0	   5a07df503a6f01280f493cbcc2aace462b9dee57
+%global commitdate 20150629
 
-%define major	1
-%define libname	%mklibname %{name} %{version}
-%define devname	%mklibname %{name} -d
+%global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
+%global _qt5_headerdir %{_includedir}/qt5/
 
 Summary:	QFile extension with advisory locking functions
 Name:		qtlockedfile
-Version:	%{version}
-Release:	11
-Group:		Development/KDE and Qt
+Version:	2.4
+Release:	28.%{commitdate}git%{shortcommit0}%{?dist}
+
 License:	GPLv3 or LGPLv2 with exceptions
-Url:		http://qt.nokia.com/products/appdev/add-on-products/catalog/4/Utilities/qtlockedfile
-Source0:	http://get.qt.nokia.com/qt/solutions/lgpl/%{name}-%{upstream_version}-opensource.tar.gz
+URL:		http://doc.qt.digia.com/solutions/4/qtlockedfile/qtlockedfile.html
+Source0:	https://github.com/qtproject/qt-solutions/archive/%{commit0}.tar.gz#/%{name}-%{commit0}.tar.gz
 Source1:	qtlockedfile.prf
-# (Fedora) don't build examples
-Patch0:		qtlockedfile-dont-build-example.patch
-# (Fedora) Remove unnecessary linkage to libQtGui
-Patch1:		qtlockedfile-dont-link-qtgui.patch
-BuildRequires:	qt4-devel
+# Proposed upstream in https://codereview.qt-project.org/#/c/92411/
+Source2:	LICENSE.LGPL
+# Proposed upstream in https://codereview.qt-project.org/#/c/92411/
+Source3:	LGPL_EXCEPTION
+# Proposed upstream in https://codereview.qt-project.org/#/c/92411/
+Source4:	LICENSE.GPL3
+
+BuildRequires:	qt5-qtbase-devel
 
 %description
-This class extends the QFile class with inter-process file locking
-capabilities.
+This class extends the QFile class with inter-process file locking capabilities.
 If an application requires that several processes should access the same file,
 QtLockedFile can be used to easily ensure that only one process at a time is
 writing to the file, and that no process is writing to it while others are
 reading it.
 
-%package	-n %{libname}
-Summary:	QFile extension with advisory locking functions
-Group:		Development/KDE and Qt
-Requires:	qt4-common
+%package qt5
+Summary:	QFile extension with advisory locking functions (Qt5)
+Requires:	qt5-qtbase
 
-%description	-n %{libname}
-This class extends the QFile class with inter-process file locking
-capabilities.
+%description qt5
+This class extends the QFile class with inter-process file locking capabilities.
 If an application requires that several processes should access the same file,
 QtLockedFile can be used to easily ensure that only one process at a time is
 writing to the file, and that no process is writing to it while others are
 reading it.
+This is a special build against Qt5.
 
-This is the library package for %{name}
+%package qt5-devel
+Summary:	Development files for %{name}-qt5
+Requires:	%{name}-qt5 = %{version}-%{release}
+Requires:	qt5-qtbase-devel
 
-%package	-n %{devname}
-Summary:	Development files for %{name}
-Group:		Development/KDE and Qt
-Requires:	%{libname} = %{version}-%{release}
-Provides:	%{name}-devel = %{version}-%{release}
-
-%description	-n %{devname}
+%description qt5-devel
 This package contains libraries and header files for developing applications
-that use QtLockedFile.
+that use QtLockedFile with Qt5.
+
 
 %prep
-%setup -qn %{name}-%{upstream_version}-opensource
-%apply_patches
+%setup -qn qt-solutions-%{commit0}/%{name}
+# use versioned soname
+sed -i s,head,%{version}, common.pri
+# do not build example source
+sed -i /example/d %{name}.pro
+mkdir licenses
+cp %{SOURCE2} %{SOURCE3} %{SOURCE4} licenses
+
 
 %build
-touch .licenseAccepted
 # Does not use GNU configure
 ./configure -library
-%qmake_qt4
-%make
+%{qmake_qt5}
+%make_build
 
 %install
 # libraries
-mkdir -p %{buildroot}%{qt4lib}
-cp -a lib/* %{buildroot}%{qt4lib}
+mkdir -p %{buildroot}%{_libdir}
+cp -ap lib/* %{buildroot}%{_libdir}
 
 # headers
-mkdir -p %{buildroot}%{qt4include}/QtSolutions
-cp -a \
-    src/qtlockedfile.h \
-    src/QtLockedFile \
-    %{buildroot}%{qt4include}/QtSolutions
+mkdir -p %{buildroot}%{_qt4_headerdir}/QtSolutions %{buildroot}%{_qt5_headerdir}
+cp -ap %{buildroot}%{_qt4_headerdir}/QtSolutions %{buildroot}%{_qt5_headerdir}
 
-mkdir -p %{buildroot}%{qt4dir}/mkspecs/features
-cp -a %{SOURCE1} %{buildroot}%{qt4dir}/mkspecs/features/
+install -p -D -m644 %{SOURCE1} %{buildroot}%{_libdir}/qt5/mkspecs/features/qtlockedfile.prf
 
-%files -n %{libname}
-%{qt4lib}/lib*.so.%{major}*
 
-%files -n %{devname}
-%doc LGPL_EXCEPTION.txt LICENSE.* README.TXT
-%doc doc example
-%{qt4lib}/lib*.so
-%{qt4include}/QtSolutions
-%{qt4dir}/mkspecs/features/%{name}.prf
+%files
+%license licenses/*
+%doc README.TXT
 
+%files qt5
+%license licenses/*
+%doc README.TXT
+# Caution! do not include any unversioned .so symlink (belongs to -devel)
+%{_qt5_libdir}/libQt5Solutions_LockedFile*.so.*
+
+%files qt5-devel
+%doc doc/html/ example/
+%{_qt5_headerdir}/QtSolutions/
+%{_qt5_libdir}/libQt5Solutions_LockedFile*.so
+%{_libdir}/qt5/mkspecs/features/qtlockedfile.prf
