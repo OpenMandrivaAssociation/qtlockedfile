@@ -10,7 +10,7 @@ Version:	2.4
 Release:	28.%{commitdate}git%{shortcommit0}%{?dist}
 
 License:	GPLv3 or LGPLv2 with exceptions
-URL:		http://doc.qt.digia.com/solutions/4/qtlockedfile/qtlockedfile.html
+URL:		https://doc.qt.digia.com/solutions/4/qtlockedfile/qtlockedfile.html
 Source0:	https://github.com/qtproject/qt-solutions/archive/%{commit0}.tar.gz#/%{name}-%{commit0}.tar.gz
 Source1:	qtlockedfile.prf
 # Proposed upstream in https://codereview.qt-project.org/#/c/92411/
