@@ -20,6 +20,11 @@ Source3:	LGPL_EXCEPTION
 # Proposed upstream in https://codereview.qt-project.org/#/c/92411/
 Source4:	LICENSE.GPL3
 
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires:	qt5-qtbase-devel
 
 %description
